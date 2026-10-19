@@ -174,7 +174,7 @@ td.num,th.num{text-align:right; white-space:nowrap}
 <div class="wrap hidden" id="view-done">
   <section class="done">
     <div class="mark" aria-hidden="true">✓</div>
-    <h1 id="doneTitle">申し込みました</h1>
+    <h1 id="doneTitle">お申込みありがとうございます。</h1>
     <p class="lead" id="doneLead"></p>
     <dl class="card" id="card"></dl>
     <button class="ghost" id="again" type="button">別の日も申し込む</button>
@@ -298,7 +298,7 @@ function buildBody(p) {
 }
 
 function showDone(p, viaMail) {
-  $("doneTitle").textContent = viaMail ? "メールを送ってください" : "申し込みました";
+  $("doneTitle").textContent = viaMail ? "メールを送ってください" : "お申込みありがとうございます。";
   $("doneLead").textContent = viaMail
     ? "メールアプリが開きます。内容を確認して「送信」を押すと申し込み完了です。"
     : "申し込み内容を、管理人とあなたのメールに送りました。当日お会いできるのを楽しみにしています。";
