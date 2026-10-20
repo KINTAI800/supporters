@@ -7,20 +7,27 @@
 <style>
 :root{
   color-scheme: light dark;
-  --bg:#EDF1EC; --surface:#FFFFFF; --ink:#1B2A25; --muted:#5E6F68;
-  --forest:#23453B; --on-forest:#FFFFFF; --sun:#F0BE3E; --on-sun:#2A2208;
-  --line:#CBD5CF; --ok:#2F7A58; --err:#C2503F; --gray:#D5DBD7; --gray-ink:#8A9690;
+  --bg1:#D8F3EA; --bg2:#FFEFC9;
+  --bg:#EEF5F1; --surface:#FFFFFF; --ink:#1B2A25; --muted:#586A62;
+  --forest:#0B7F74; --on-forest:#FFFFFF;
+  --btn:#D4432D; --on-btn:#FFFFFF;
+  --sun:#F0BE3E; --on-sun:#2A2208;
+  --line:#C9D8D1; --ok:#2F7A58; --err:#C2503F; --gray:#D5DBD7; --gray-ink:#66736D;
 }
 @media (prefers-color-scheme: dark){
   :root{
+    --bg1:#0E1D1A; --bg2:#1F1A10;
     --bg:#121A17; --surface:#1B2723; --ink:#E8EFEB; --muted:#9AAAA3;
-    --forest:#7FB89F; --on-forest:#0F1B16; --sun:#F0BE3E; --on-sun:#2A2208;
-    --line:#2F403A; --ok:#7FD1A6; --err:#F08A78; --gray:#2A3631; --gray-ink:#5F6F68;
+    --forest:#5FD1C0; --on-forest:#0B2A26;
+    --btn:#FF8A73; --on-btn:#2B0F0B;
+    --sun:#F0BE3E; --on-sun:#2A2208;
+    --line:#2F403A; --ok:#7FD1A6; --err:#F08A78; --gray:#2A3631; --gray-ink:#7F8F88;
   }
 }
 *{box-sizing:border-box}
 body{
-  margin:0; background:var(--bg); color:var(--ink);
+  margin:0; color:var(--ink); min-height:100vh;
+  background:var(--bg1); background:linear-gradient(165deg,var(--bg1),var(--bg2)); background-attachment:fixed;
   font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic",sans-serif;
   line-height:1.7; -webkit-font-smoothing:antialiased;
 }
@@ -40,6 +47,7 @@ select,input[type=text],input[type=email],input[type=password],input[type=month]
   border:2px solid var(--line); background:var(--surface); color:var(--ink);
 }
 .stack > * + *{margin-top:10px}
+.stack label.f{display:block; font-size:13px; color:var(--muted); margin:14px 0 4px}
 select:focus-visible,input:focus-visible{outline:3px solid var(--sun); outline-offset:2px}
 
 /* ---- calendar ---- */
@@ -102,9 +110,10 @@ button.day:focus-visible{outline:3px solid var(--sun); outline-offset:1px}
 
 button.go{
   width:100%; font:inherit; font-size:17px; font-weight:700; padding:16px; border:0; border-radius:18px;
-  background:var(--forest); color:var(--on-forest); cursor:pointer;
+  background:var(--btn); color:var(--on-btn); cursor:pointer; box-shadow:0 4px 0 rgba(0,0,0,.18);
 }
-button.go:disabled{opacity:.5; cursor:not-allowed}
+button.go:active:not(:disabled){transform:translateY(2px); box-shadow:0 2px 0 rgba(0,0,0,.18)}
+button.go:disabled{opacity:.5; cursor:not-allowed; box-shadow:none}
 button.ghost,button.small{
   font:inherit; border-radius:16px; cursor:pointer; background:transparent;
   border:2px solid var(--line); color:var(--ink); padding:12px 16px;
@@ -160,17 +169,21 @@ td.num,th.num{text-align:right; white-space:nowrap}
   <form id="form" novalidate>
     <p class="brand">レイビレッジ</p>
     <h1>サポーターズサイト</h1>
-    <p class="lead">ボランティアに来られる日を、カレンダーから選んでください。</p>
+    <p class="lead">ボランティアに「参加したい」日を、カレンダーから選んでください。</p>
 
     <fieldset class="stack">
-      <legend>お名前・メールアドレス</legend>
-      <input type="text" id="name" placeholder="お名前（例：ともこ）" autocomplete="name" aria-label="お名前">
-      <input type="email" id="email" placeholder="メールアドレス" autocomplete="email" inputmode="email" aria-label="メールアドレス">
+      <legend>お申込みの方の情報</legend>
+      <label class="f" for="name" style="margin-top:0">お名前（本名）</label>
+      <input type="text" id="name" placeholder="例：山田 花子" autocomplete="name">
+      <label class="f" for="lineName">LINE表示名</label>
+      <input type="text" id="lineName" placeholder="LINEグループでの名前" autocomplete="off">
+      <label class="f" for="email">メールアドレス</label>
+      <input type="email" id="email" placeholder="例：example@gmail.com" autocomplete="email" inputmode="email">
       <p class="hint">メールアドレスを入れると、あなたが申し込んだ日がカレンダーで色づきます。</p>
     </fieldset>
 
     <fieldset>
-      <legend>来られる日</legend>
+      <legend>参加希望日</legend>
       <p class="hint" id="pickHint"></p>
       <div class="cal">
         <div class="calhead">
@@ -181,10 +194,9 @@ td.num,th.num{text-align:right; white-space:nowrap}
         <div class="grid" id="wdrow"></div>
         <div class="grid" id="cal" style="margin-top:4px"></div>
         <div class="legend">
-          <span><i style="background:var(--forest)"></i>選んだ日</span>
-          <span><i style="background:var(--sun)"></i>申し込み済み（あなた）</span>
+          <span><i style="background:var(--sun)"></i>申込済（自分）</span>
           <span><i style="background:var(--gray)"></i>定休日</span>
-          <span>数字＝申し込み人数</span>
+          <span>数字＝申込人数</span>
         </div>
         <p class="calnote" id="calNote" aria-live="polite"></p>
       </div>
@@ -256,7 +268,7 @@ td.num,th.num{text-align:right; white-space:nowrap}
     <h2 id="reportTitle"></h2>
     <div class="stats" id="stats"></div>
     <table>
-      <thead><tr><th>期間</th><th>到着〜帰る</th><th>お名前</th><th>まかない</th><th class="num">当月日数</th><th class="num">金額</th></tr></thead>
+      <thead><tr><th>期間</th><th>到着〜帰る</th><th>お名前（本名）</th><th>LINE表示名</th><th>まかない</th><th class="num">当月日数</th><th class="num">金額</th></tr></thead>
       <tbody id="rows"></tbody>
     </table>
     <p class="note">ボランティア1日500円・まかない1食300円。金額はこの月の分です。お支払いは現地です。</p>
@@ -354,7 +366,7 @@ function renderCal() {
     if (id === todayISO) cls.push("today");
     const sub = closed ? "休" : past ? "" : isMine ? `✓${n}人` : n ? `${n}人` : "";
     const disabled = closed || past || isMine;
-    const aria = `${labelOf(id)}${closed ? " 定休日" : ""}${n ? ` ${n}人申し込み` : ""}${isMine ? " あなたは申し込み済み" : ""}`;
+    const aria = `${labelOf(id)}${closed ? " 定休日" : ""}${n ? ` ${n}人申込` : ""}${isMine ? " 申込済（自分）" : ""}`;
     html += `<button type="button" class="${cls.join(" ")}" data-iso="${id}" aria-label="${aria}"${disabled ? " disabled" : ""}>${d}<small>${sub}</small></button>`;
   }
   $("cal").innerHTML = html;
@@ -487,15 +499,16 @@ function renderMine() {
 }
 
 /* 名前・メールをこの端末に覚えておく */
-function saveMe() { try { localStorage.setItem("ss_me", JSON.stringify({ n: $("name").value, e: $("email").value })); } catch (e) {} }
+function saveMe() { try { localStorage.setItem("ss_me", JSON.stringify({ n: $("name").value, l: $("lineName").value, e: $("email").value })); } catch (e) {} }
 function restoreMe() {
   try {
     const me = JSON.parse(localStorage.getItem("ss_me") || "null");
-    if (me) { $("name").value = me.n || ""; $("email").value = me.e || ""; }
+    if (me) { $("name").value = me.n || ""; $("lineName").value = me.l || ""; $("email").value = me.e || ""; }
   } catch (e) {}
 }
 $("email").addEventListener("change", () => { saveMe(); loadMonth(); });
 $("name").addEventListener("change", saveMe);
+$("lineName").addEventListener("change", saveMe);
 
 /* ===== 申し込み ===== */
 function buildBody(p) {
@@ -503,7 +516,8 @@ function buildBody(p) {
   return [
     "サポーターズサイトに申し込みがありました。",
     "",
-    `【お名前】${p.name}`,
+    `【お名前（本名）】${p.name}`,
+    `【LINE表示名】${p.lineName}`,
     `【メール】${p.email}`,
     `【日にち】${rangeLabel(p.start, p.end)}（${days}日間）`,
     `【到着時刻】${p.from}`,
@@ -521,7 +535,7 @@ function showDone(p, viaMail) {
     ? "メールアプリが開きます。内容を確認して「送信」を押すと申し込み完了です。"
     : "申し込み内容を、管理人とあなたのメールに送りました。カレンダーでもいつでも確認できます。";
   $("card").innerHTML = [
-    ["お名前", p.name], ["メール", p.email], ["日にち", `${rangeLabel(p.start, p.end)}（${days}日間）`],
+    ["お名前（本名）", p.name], ["LINE表示名", p.lineName], ["メール", p.email], ["日にち", `${rangeLabel(p.start, p.end)}（${days}日間）`],
     ["到着時刻", p.from], ["帰る時刻", p.to], ["まかない", mealLabel(p.meal, openDays(p.start, p.end), p.mealDays)],
     ["合計", yen(p.total) + "（現地払い）"]
   ].map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join("");
@@ -532,12 +546,13 @@ $("form").addEventListener("submit", async e => {
   e.preventDefault();
   const p = {
     action: "apply",
-    name: $("name").value.trim(), email: $("email").value.trim(),
+    name: $("name").value.trim(), lineName: $("lineName").value.trim(), email: $("email").value.trim(),
     start: selStart, end: selEnd, from: $("from").value, to: $("to").value, meal: val("meal")
   };
-  if (!p.name) return $("err").textContent = "お名前を入力してください";
+  if (!p.name) return $("err").textContent = "お名前（本名）を入力してください";
+  if (!p.lineName) return $("err").textContent = "LINE表示名を入力してください";
   if (!emailOk(p.email)) return $("err").textContent = "メールアドレスを正しく入力してください";
-  if (!p.start) return $("err").textContent = "カレンダーで来られる日を選んでください";
+  if (!p.start) return $("err").textContent = "カレンダーで参加希望日を選んでください";
   const days = openDays(p.start, p.end);
   if (days.some(d => mine.has(d))) return $("err").textContent = "すでに申し込み済みの日が入っています。日にちを選びなおしてください";
   if (p.start === p.end && mins(p.to) <= mins(p.from)) return $("err").textContent = "帰る時刻は、到着時刻より後にしてください";
@@ -548,7 +563,7 @@ $("form").addEventListener("submit", async e => {
   saveMe();
 
   if (!GAS_URL) {
-    const subject = `【サポーターズサイト】${rangeLabel(p.start, p.end)} ${p.name}`;
+    const subject = `【サポーターズサイト】${rangeLabel(p.start, p.end)} ${p.name}（LINE：${p.lineName}）`;
     location.href = `mailto:${ADMIN_EMAIL}?cc=${encodeURIComponent(p.email)}` +
       `&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(buildBody(p))}`;
     return showDone(p, true);
@@ -613,9 +628,9 @@ function renderReport(month, rows) {
     `<span>申込 <b>${rows.length}</b>件</span><span>延べ <b>${dayTotal}</b>日</span>` +
     `<span>まかない <b>${mealDays}</b>食</span><span>合計 <b>${yen(sum)}</b></span>`;
   $("rows").innerHTML = rows.length
-    ? rows.map(r => `<tr><td>${rangeLabel(r.start, r.end)}</td><td>${esc(r.from)}〜${esc(r.to)}</td><td>${esc(r.name)}</td>` +
+    ? rows.map(r => `<tr><td>${rangeLabel(r.start, r.end)}</td><td>${esc(r.from)}〜${esc(r.to)}</td><td>${esc(r.name)}</td><td>${esc(r.line || "")}</td>` +
         `<td>${r.mealN ? esc(r.mealN) + "食" : "無し"}</td><td class="num">${esc(r.days)}日</td><td class="num">${yen(r.total)}</td></tr>`).join("")
-    : `<tr><td colspan="6">この月の申し込みはありません</td></tr>`;
+    : `<tr><td colspan="7">この月の申し込みはありません</td></tr>`;
   $("report").classList.remove("hidden");
   $("printBtn").classList.remove("hidden");
   $("printNote").classList.remove("hidden");
