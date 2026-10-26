@@ -114,6 +114,7 @@ button.go{
 }
 button.go:active:not(:disabled){transform:translateY(2px); box-shadow:0 2px 0 rgba(0,0,0,.18)}
 button.go:disabled{opacity:.5; cursor:not-allowed; box-shadow:none}
+button.go small{font-size:13px; font-weight:700; white-space:nowrap}
 button.ghost,button.small{
   font:inherit; border-radius:16px; cursor:pointer; background:transparent;
   border:2px solid var(--line); color:var(--ink); padding:12px 16px;
@@ -121,6 +122,11 @@ button.ghost,button.small{
 button.ghost{width:100%; margin-top:10px}
 button:focus-visible{outline:3px solid var(--sun); outline-offset:3px}
 .err{color:var(--err); font-size:14px; min-height:22px; margin:0 0 8px}
+.linebox{margin-top:16px; padding:16px; border-radius:16px; background:var(--surface); border:2px solid var(--line); text-align:center}
+.linebox h3{margin:0 0 10px; font-size:16px; color:var(--forest)}
+.linebox h3 a{color:var(--forest); text-decoration:underline; text-underline-offset:3px}
+.linebox h3 a:focus-visible{outline:3px solid var(--sun); outline-offset:2px; border-radius:4px}
+.linebox p{margin:0; font-size:14px; color:var(--muted)}
 .linkrow{text-align:center; margin-top:26px}
 .linkrow button{border:0; background:none; color:var(--muted); font:inherit; font-size:13px; text-decoration:underline; cursor:pointer}
 
@@ -195,7 +201,7 @@ td.num,th.num{text-align:right; white-space:nowrap}
         <div class="grid" id="cal" style="margin-top:4px"></div>
         <div class="legend">
           <span><i style="background:var(--sun)"></i>申込済（自分）</span>
-          <span><i style="background:var(--gray)"></i>定休日</span>
+          <span><i style="background:var(--gray)"></i>定休日・休業日</span>
           <span>数字＝申込人数</span>
         </div>
         <p class="calnote" id="calNote" aria-live="polite"></p>
@@ -232,7 +238,11 @@ td.num,th.num{text-align:right; white-space:nowrap}
     <div class="price" id="price" aria-live="polite"></div>
 
     <p class="err" id="err" role="alert"></p>
-    <button type="submit" class="go" id="submitBtn">この内容で申し込む（メールを送る）</button>
+    <button type="submit" class="go" id="submitBtn">この内容で申し込む<small>（自分のメールアドレスにも届きます）</small></button>
+    <div class="linebox">
+      <h3 id="lineTitle">サポーターズLINEグループ</h3>
+      <p>ご変更等ございましたら上記LINEにてお知らせください。</p>
+    </div>
     <div class="linkrow"><button type="button" id="toAdmin">管理人用</button></div>
   </form>
 </div>
@@ -285,9 +295,13 @@ td.num,th.num{text-align:right; white-space:nowrap}
 /* ===== 設定 ===== */
 const GAS_URL = "https://script.google.com/macros/s/AKfycbziAhPPUy7tKaV2VOo6mB-cZm5TOSbtCjf4uxdCuBjqk5BZjZVLTInMABeux-B7_jlDMw/exec";
 const ADMIN_EMAIL = "leivillagecrew@gmail.com";
+const LINE_URL = "";           // サポーターズLINEグループの招待リンク（https://line.me/… を "" の中に入れる）
 const FEE_VOLUNTEER = 500;   // 1日あたり
 const FEE_MEAL = 300;        // 1日あたり
 const CLOSED = [1, 4];       // 定休日の曜日（0=日,1=月,2=火,3=水,4=木,5=金,6=土）
+// 休業日（定休日以外のお休み）。1日だけ "YYYY-MM-DD"、続けてなら "開始~終了"
+// ※ Google側（.gs）の CLOSED_DATES とそろえてください
+const CLOSED_DATES = ["2026-11-22", "2026-12-22", "2026-12-26~2027-01-04"];
 const MAX_SPAN = 31;         // 続けて申し込める最大日数
 
 const WD = ["日","月","火","水","木","金","土"];
@@ -301,7 +315,8 @@ const isoOf = (y, m0, d) => `${y}-${pad(m0 + 1)}-${pad(d)}`;
 const parse = iso => { const [y, m, d] = iso.split("-").map(Number); return new Date(y, m - 1, d); };
 const labelOf = iso => { const d = parse(iso); return `${d.getMonth() + 1}月${d.getDate()}日（${WD[d.getDay()]}）`; };
 const rangeLabel = (a, b) => a === b ? labelOf(a) : `${labelOf(a)}〜${labelOf(b)}`;
-const isClosed = iso => CLOSED.includes(parse(iso).getDay());
+const isClosed = iso => CLOSED.includes(parse(iso).getDay()) ||
+  CLOSED_DATES.some(x => { const [a, b = a] = x.split("~"); return iso >= a && iso <= b; });
 const emailOk = s => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
 
 function spanDays(a, b) { return Math.round((parse(b) - parse(a)) / 86400000) + 1; }
@@ -366,7 +381,7 @@ function renderCal() {
     if (id === todayISO) cls.push("today");
     const sub = closed ? "休" : past ? "" : isMine ? `✓${n}人` : n ? `${n}人` : "";
     const disabled = closed || past || isMine;
-    const aria = `${labelOf(id)}${closed ? " 定休日" : ""}${n ? ` ${n}人申込` : ""}${isMine ? " 申込済（自分）" : ""}`;
+    const aria = `${labelOf(id)}${closed ? " 定休日・休業日" : ""}${n ? ` ${n}人申込` : ""}${isMine ? " 申込済（自分）" : ""}`;
     html += `<button type="button" class="${cls.join(" ")}" data-iso="${id}" aria-label="${aria}"${disabled ? " disabled" : ""}>${d}<small>${sub}</small></button>`;
   }
   $("cal").innerHTML = html;
@@ -431,7 +446,7 @@ function refresh() {
   }
 
   $("when").innerHTML = `<strong>${rangeLabel(selStart, selEnd)}</strong>　${days}日間` +
-    (skipped ? `（定休日${skipped}日は除きます）` : "");
+    (skipped ? `（定休日・休業日${skipped}日は除きます）` : "");
   let html = `<div><span>ボランティア ${yen(FEE_VOLUNTEER)}×${days}日</span><span>${yen(FEE_VOLUNTEER * days)}</span></div>`;
   if (meal === "あり") {
     html += `<div><span>まかない ${yen(FEE_MEAL)}×${mealDays.length}食</span><span>${yen(FEE_MEAL * mealDays.length)}</span></div>`;
@@ -570,13 +585,14 @@ $("form").addEventListener("submit", async e => {
   }
 
   const btn = $("submitBtn");
+  const BTN_LABEL = btn.innerHTML;
   btn.disabled = true; btn.textContent = "送信中…";
   try {
     const data = await post(p);
     if (!data.ok) {
       $("err").textContent =
         data.error === "duplicate" ? "すでに申し込み済みの日が入っています。日にちを選びなおしてください" :
-        data.error === "closed" ? "定休日は選べません。日にちを選びなおしてください" :
+        data.error === "closed" ? "定休日・休業日は選べません。日にちを選びなおしてください" :
         data.error === "past" ? "過ぎた日は選べません" :
         "送信できませんでした。入力内容を確認してください";
       return;
@@ -587,7 +603,7 @@ $("form").addEventListener("submit", async e => {
   } catch (err) {
     $("err").textContent = "送信できませんでした。通信を確認して、もう一度押してください。";
   } finally {
-    btn.disabled = false; btn.textContent = "この内容で申し込む（メールを送る）";
+    btn.disabled = false; btn.innerHTML = BTN_LABEL;
   }
 });
 
@@ -638,6 +654,10 @@ function renderReport(month, rows) {
 $("printBtn").addEventListener("click", () => window.print());
 
 /* ===== 起動 ===== */
+/* LINE_URL が入っていれば「サポーターズLINEグループ」の文字をリンクにする */
+if (/^https:\/\//.test(LINE_URL)) {
+  $("lineTitle").innerHTML = `<a href="${esc(LINE_URL)}" target="_blank" rel="noopener">サポーターズLINEグループ</a>`;
+}
 restoreMe();
 renderCal(); refresh(); renderMine();
 loadMonth();
