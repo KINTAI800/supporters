@@ -49,6 +49,9 @@ select,input[type=text],input[type=email],input[type=password],input[type=month]
 .stack > * + *{margin-top:10px}
 .stack label.f{display:block; font-size:13px; color:var(--muted); margin:14px 0 4px}
 select:focus-visible,input:focus-visible{outline:3px solid var(--sun); outline-offset:2px}
+/* お名前・LINE表示名・メールアドレスの枠は小さめ（文字は16px：これより小さいとiPhoneで画面が拡大されてしまう） */
+.info input[type=text],.info input[type=email]{font-size:16px; padding:8px 12px; border-radius:10px}
+.stack.info label.f{margin:10px 0 3px}
 
 /* ---- calendar ---- */
 .cal{background:var(--surface); border:2px solid var(--line); border-radius:18px; padding:12px 10px 10px}
@@ -177,7 +180,7 @@ td.num,th.num{text-align:right; white-space:nowrap}
     <h1>サポーターズサイト</h1>
     <p class="lead">ボランティアに「参加したい」日を、カレンダーから選んでください。</p>
 
-    <fieldset class="stack">
+    <fieldset class="stack info">
       <legend>お申込みの方の情報</legend>
       <label class="f" for="name" style="margin-top:0">お名前（本名）</label>
       <input type="text" id="name" placeholder="例：山田 花子" autocomplete="name">
@@ -238,7 +241,7 @@ td.num,th.num{text-align:right; white-space:nowrap}
     <div class="price" id="price" aria-live="polite"></div>
 
     <p class="err" id="err" role="alert"></p>
-    <button type="submit" class="go" id="submitBtn">この内容で申し込む<small>（自分のメールアドレスにも届きます）</small></button>
+    <button type="submit" class="go" id="submitBtn">この内容で申し込む<small>（確認メールが届きます）</small></button>
     <div class="linebox">
       <h3 id="lineTitle">サポーターズLINEグループ</h3>
       <p>ご変更等ございましたら上記LINEにてお知らせください。</p>
@@ -295,7 +298,7 @@ td.num,th.num{text-align:right; white-space:nowrap}
 /* ===== 設定 ===== */
 const GAS_URL = "https://script.google.com/macros/s/AKfycbziAhPPUy7tKaV2VOo6mB-cZm5TOSbtCjf4uxdCuBjqk5BZjZVLTInMABeux-B7_jlDMw/exec";
 const ADMIN_EMAIL = "leivillagecrew@gmail.com";
-const LINE_URL = "";           // サポーターズLINEグループの招待リンク（https://line.me/… を "" の中に入れる）
+const LINE_URL = "https://line.me/ti/g/XS3_T8xwGZ";           // サポーターズLINEグループの招待リンク（https://line.me/… を "" の中に入れる）
 const FEE_VOLUNTEER = 500;   // 1日あたり
 const FEE_MEAL = 300;        // 1日あたり
 const CLOSED = [1, 4];       // 定休日の曜日（0=日,1=月,2=火,3=水,4=木,5=金,6=土）
